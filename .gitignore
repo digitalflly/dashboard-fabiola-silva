@@ -1,0 +1,17 @@
+# Dependências / sistema
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Artefatos de desenvolvimento / preview
+screenshots/
+*.log
+
+# Arquivos internos do editor de design
+.thumbnail
+**/_adherence.oxlintrc.json
+
+# NÃO ignorar: .image-slots.state.json (guarda a foto do perfil servida ao vivo)
