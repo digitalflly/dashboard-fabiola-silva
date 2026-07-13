@@ -234,7 +234,45 @@
       <sc-if value="{{ hasPosted }}" hint-placeholder-val="{{ true }}">
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(248px, 1fr)); gap:18px; margin-bottom:34px;">
           <sc-for list="{{ posted }}" as="c" hint-placeholder-count="6">
-            <div class="b-card" style="padding:0; overflow:hidden;">
+            <div class="b-card" style="padding:0; overflow:hidden; cursor:pointer;" onClick="{{ c.onOpen }}" title="Abrir no Instagram">
+              <div style="{{ c.coverBase }}">
+                <span style="font-family:var(--font-display); font-size:80px; color:rgba(23,34,25,0.12); line-height:1; user-select:none;">{{ brand.initial }}</span>
+                {{ c.coverEl }}
+                <span class="b-badge" style="position:absolute; top:10px; left:10px; background:rgba(23,34,25,0.62); color:var(--surface-card); border:0; backdrop-filter:blur(2px);">{{ c.typeLabel }}</span>
+                <span style="position:absolute; bottom:10px; right:12px; font-size:12px; color:var(--surface-card); font-weight:500; text-shadow:0 1px 4px rgba(0,0,0,0.5);">{{ c.date }}</span>
+              </div>
+              <div style="padding:14px 16px;">
+                <div data-keepcase="1" style="font-size:13px; color:var(--text-strong); font-weight:500; line-height:1.35; height:36px; overflow:hidden;">{{ c.caption }}</div>
+                <div style="display:flex; gap:14px; margin:11px 0 12px; font-size:12px; color:var(--text-body);">
+                  <span>♥ {{ c.likes }}</span>
+                  <span>◷ {{ c.comments }}</span>
+                  <span>↗ {{ c.shares }}</span>
+                  <span>⤓ {{ c.saves }}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; border-top:1px solid var(--border-soft); padding-top:11px;">
+                  <sc-for list="{{ c.metrics }}" as="m" hint-placeholder-count="8">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
+                      <span style="font-size:11px; color:var(--text-muted);">{{ m.label }}</span>
+                      <span style="font-size:12px; font-weight:600; color:var(--text-strong);">{{ m.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasConsultoria }}" hint-placeholder-val="{{ false }}">
+        <div style="border-top:1px solid var(--border-soft); margin:6px 0 22px;"></div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong);">Conteúdos da consultoria</div>
+          <span class="b-badge">{{ consultoriaCount }}</span>
+        </div>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">Publicações do período cuja legenda menciona a consultoria.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(248px, 1fr)); gap:18px; margin-bottom:34px;">
+          <sc-for list="{{ consultoria }}" as="c" hint-placeholder-count="3">
+            <div class="b-card" style="padding:0; overflow:hidden; cursor:pointer;" onClick="{{ c.onOpen }}" title="Abrir no Instagram">
               <div style="{{ c.coverBase }}">
                 <span style="font-family:var(--font-display); font-size:80px; color:rgba(23,34,25,0.12); line-height:1; user-select:none;">{{ brand.initial }}</span>
                 {{ c.coverEl }}
@@ -997,14 +1035,15 @@ class Component extends DCLogic {
         const CKEY='dbi_posts_cache_'+H;
         // cache existente (histórico já salvo)
         let cached=[]; let seeded=false;
-        try{ const raw=localStorage.getItem(CKEY); if(raw){ const o=JSON.parse(raw); if(o&&Array.isArray(o.posts)){ cached=o.posts; seeded=o.posts.length>0 && o.seedV===2; } } }catch(_){}
-        // 1ª vez (varredura completa): desde 1º de janeiro; depois só o mês atual
-        const jan1=Date.UTC(to.getUTCFullYear(),0,1);
-        const daysSinceJan1=Math.ceil((to.getTime()-jan1)/86400000)+1;
+        try{ const raw=localStorage.getItem(CKEY); if(raw){ const o=JSON.parse(raw); if(o&&Array.isArray(o.posts)){ cached=o.posts; seeded=o.posts.length>0 && o.seedV===5; } } }catch(_){}
+        // 1ª vez (varredura completa): desde 1º de dezembro/2025; depois só o mês atual
+        const seedStart=Date.UTC(to.getUTCFullYear()-1,11,1);
+        const daysSinceSeed=Math.ceil((to.getTime()-seedStart)/86400000)+1;
         const daysThisMonth=to.getUTCDate()+2;
-        const win = seeded ? daysThisMonth : daysSinceJan1;
-        const mRows=await getF('media_id,timestamp,media_type,media_product_type,media_caption,media_like_count,media_comments_count,media_reach,media_saved,media_shares,media_views,media_url,media_thumbnail_url,username', win);
-        const fresh=mRows.map((r,i)=>{ const likes=num(r.media_like_count),comments=num(r.media_comments_count),shares=num(r.media_shares),saves=num(r.media_saved); const reach=num(r.media_reach), views=num(r.media_views); const eng=num(r.media_engagement)||(likes+comments+shares+saves); const type=(r.media_product_type==='REELS')?'REELS':(r.media_type||'IMAGE'); return { id:r.media_id||null, ts:String(r.timestamp||'').slice(0,10), type, likes,comments,shares,saves, views, reach, eng, caption:String(r.media_caption||'Sem legenda').replace(/\s+/g,' ').trim().slice(0,140), coverIdx:i, cover:String(r.media_thumbnail_url||r.media_url||''), thumb:String(r.media_thumbnail_url||r.media_url||'') }; })
+        const win = seeded ? daysThisMonth : daysSinceSeed;
+        const mRows=await getF('media_id,timestamp,media_type,media_product_type,media_caption,media_like_count,media_comments_count,media_reach,media_saved,media_shares,media_views,media_url,media_thumbnail_url,media_permalink,username', win);
+        const CONSULT_RE=/consultor|mentoria/i;
+        const fresh=mRows.map((r,i)=>{ const likes=num(r.media_like_count),comments=num(r.media_comments_count),shares=num(r.media_shares),saves=num(r.media_saved); const reach=num(r.media_reach), views=num(r.media_views); const eng=num(r.media_engagement)||(likes+comments+shares+saves); const type=(r.media_product_type==='REELS')?'REELS':(r.media_type||'IMAGE'); const rawCap=String(r.media_caption||'Sem legenda').replace(/\s+/g,' ').trim(); return { id:r.media_id||null, ts:String(r.timestamp||'').slice(0,10), type, likes,comments,shares,saves, views, reach, eng, caption:rawCap.slice(0,140), isConsult:CONSULT_RE.test(rawCap), perma:String(r.media_permalink||''), coverIdx:i, cover:String(r.media_thumbnail_url||r.media_url||''), thumb:String(r.media_thumbnail_url||r.media_url||'') }; })
           .filter(p=>isDate(p.ts) && p.id);
         // corte pela janela buscada: cache fornece tudo anterior, fetch fornece a janela
         const cutoff = fd(new Date(to.getTime()-win*86400000));
@@ -1051,9 +1090,9 @@ class Component extends DCLogic {
 
   // grava o cache; se estourar a cota, regrava sem as capas embutidas
   saveCache(CKEY, media, savedAt){
-    try{ localStorage.setItem(CKEY, JSON.stringify({posts:media, savedAt, seedV:2})); return true; }
+    try{ localStorage.setItem(CKEY, JSON.stringify({posts:media, savedAt, seedV:5})); return true; }
     catch(e){
-      try{ localStorage.setItem(CKEY, JSON.stringify({posts:media.map(p=>{ const q={...p}; delete q.coverData; return q; }), savedAt, seedV:2})); }catch(_){}
+      try{ localStorage.setItem(CKEY, JSON.stringify({posts:media.map(p=>{ const q={...p}; delete q.coverData; return q; }), savedAt, seedV:5})); }catch(_){}
       return false;
     }
   }
@@ -1077,7 +1116,7 @@ class Component extends DCLogic {
   }
   // embute, em background, as capas dos posts desde jan/2026 ainda não guardadas
   async persistCovers(media, CKEY, savedAt){
-    const SINCE=(new Date()).getUTCFullYear()+'-01-01';
+    const SINCE=((new Date()).getUTCFullYear()-1)+'-12-01';
     const targets=media.filter(p=> p && p.ts>=SINCE && !p.coverData && (p.thumb||p.cover));
     if(!targets.length) return;
     let i=0; const conc=6;
@@ -1363,6 +1402,7 @@ class Component extends DCLogic {
         React.createElement('div', { style:{ position:'absolute', inset:0, background:'linear-gradient(rgba(23,34,25,0.06), rgba(23,34,25,0.40))' } })
       ) : null;
       return { typeLabel:typeLabel(p.type), date:this.ddmm(p.ts), caption:p.caption,
+        perma:p.perma||'', onOpen:()=>{ if(p.perma) window.open(p.perma,'_blank','noopener'); },
         likes: PM?this.fmtNum(p.likes):'—', comments: PM?this.fmtNum(p.comments):'—', shares: PM?this.fmtNum(p.shares):'—', saves: PM?this.fmtNum(p.saves):'—',
         coverBase, coverEl,
         metrics:[
@@ -1376,8 +1416,17 @@ class Component extends DCLogic {
           {label:'Salvamentos', value: PM?this.fmtNum(p.saves):'—'},
         ] };
     };
-    const posted=contentMedia.filter(p=>!isTest(p)).map(cardOf);
-    const tests=contentMedia.filter(isTest).map(cardOf);
+    const CONSULT_RE=/consultor|mentoria/i;
+    const isConsultP=p=>p.isConsult || CONSULT_RE.test(p.caption||'');
+    const posted=contentMedia.filter(p=>!isTest(p) && !isConsultP(p)).map(cardOf);
+    const tests=contentMedia.filter(p=>isTest(p) && !isConsultP(p)).map(cardOf);
+
+    // CONTEÚDOS DA CONSULTORIA — posts do período filtrado cuja legenda
+    // menciona consultoria/mentoria.
+    const consultMedia=contentMedia
+      .filter(isConsultP)
+      .slice().sort((a,b)=> a.ts<b.ts?1:-1);
+    const consultoria=consultMedia.map(cardOf);
 
     // INSIGHTS
     const winDays=M.daily.filter(r=>r.date>=win.start && r.date<=win.end);
@@ -1418,6 +1467,7 @@ class Component extends DCLogic {
     return { ...base,
       kpis, metric2:S.metric2, metric2Options, onMetric2:(e)=>this.setState({metric2:e.target.value}),
       posted, tests, postedCount:String(posted.length), testCount:String(tests.length),
+      consultoria, consultoriaCount:String(consultoria.length), hasConsultoria:consultoria.length>0, consultoriaEmpty:consultoria.length===0,
       hasPosted:posted.length>0, hasTest:tests.length>0, contentEmpty: posted.length===0 && tests.length===0,
       averages, top3, topMetric:S.topMetric, topMetricOptions, onTopMetric:(e)=>this.setState({topMetric:e.target.value}),
       worked, notWorked,
