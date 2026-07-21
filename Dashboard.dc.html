@@ -321,6 +321,17 @@
             </sc-if>
           </sc-for>
         </div>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <sc-if value="{{ campFilter.hasMany }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Campanha</span>
+          <select data-keepcase="1" onChange="{{ campFilter.onChange }}" value="{{ campFilter.value }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:7px 12px; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-strong); max-width:260px;">
+            <sc-for list="{{ campFilter.options }}" as="o" hint-placeholder-count="2">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        </sc-if>
         <sc-if value="{{ salesFilterShow }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex; gap:6px; align-items:center;">
           <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Origem das vendas</span>
@@ -331,6 +342,7 @@
           </select>
         </div>
         </sc-if>
+        </div>
       </div>
 
       <sc-if value="{{ candReady }}" hint-placeholder-val="{{ false }}">
@@ -422,13 +434,10 @@
               <table style="border-collapse:collapse; width:100%; table-layout:fixed;">
                 <thead>
                   <tr style="text-align:right;">
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; text-align:left; padding:0 8px 10px 4px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; width:32%;">Conjunto</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Impr.</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">CTR</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">{{ colS2 }}</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">{{ colS3 }}</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">{{ colS4 }}</th>
-                    <th style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; text-align:right; padding:0 4px 10px 8px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600;">{{ colS5 }}</th>
+                    <th onClick="{{ setHeadFirst.onClick }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; text-align:left; padding:0 8px 10px 4px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; width:32%; cursor:pointer; user-select:none;">{{ setHeadFirst.label }}{{ setHeadFirst.arrow }}</th>
+                    <sc-for list="{{ setHeadRest }}" as="h" hint-placeholder-count="6">
+                      <th onClick="{{ h.onClick }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none; white-space:nowrap;">{{ h.label }}{{ h.arrow }}</th>
+                    </sc-for>
                   </tr>
                 </thead>
                 <tbody>
@@ -491,13 +500,10 @@
             <table style="border-collapse:collapse; width:100%; min-width:660px;">
               <thead>
                 <tr style="text-align:right;">
-                  <th style="text-align:left; padding:0 12px 10px 4px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">Anúncio</th>
-                  <th style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">Impressões</th>
-                  <th style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">CTR</th>
-                  <th style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">{{ colA2 }}</th>
-                  <th style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">{{ colA3 }}</th>
-                  <th style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">{{ colA4 }}</th>
-                  <th style="text-align:right; padding:0 4px 10px 12px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap;">{{ colA5 }}</th>
+                  <th onClick="{{ adHeadFirst.onClick }}" style="text-align:left; padding:0 12px 10px 4px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ adHeadFirst.label }}{{ adHeadFirst.arrow }}</th>
+                  <sc-for list="{{ adHeadRest }}" as="h" hint-placeholder-count="6">
+                    <th onClick="{{ h.onClick }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ h.label }}{{ h.arrow }}</th>
+                  </sc-for>
                 </tr>
               </thead>
               <tbody>
@@ -606,6 +612,9 @@ class Component extends DCLogic {
       candMonth: 'all',
       candFrom: '',
       candTo: '',
+      candCampaign: 'all',
+      sortAds: { key:'impr', dir:-1 },
+      sortSets: { key:'impr', dir:-1 },
       salesUtmFilter: 'all',
       demo: null,
       ads: null,
@@ -1181,7 +1190,7 @@ class Component extends DCLogic {
       try{ cached=JSON.parse(localStorage.getItem(this.ADS_CKEY)||'null'); }catch(e){}
       if(cached && cached.rows && cached.through){
         cached.rows.forEach(s=>{ store[s.acc+'|'+s.camp+'|'+s.d+'|'+s.ad]=s; });
-        const cut=ymd(new Date(today.getTime()-3*86400000));          // 3 dias anteriores
+        const cut=ymd(new Date(today.getTime()-30*86400000));          // re-busca os últimos 30 dias (recência do gerenciador)
         Object.keys(store).forEach(id=>{ if(store[id].d>=cut) delete store[id]; });
         ingest(store, await fetchRange(cut, todayStr));
       }else{
@@ -1199,7 +1208,7 @@ class Component extends DCLogic {
       rowsArr.forEach(s=>{ const m=campMeta[s.acc+'|'+s.camp]; if(!m) return;
         if(m.first < this.ADS_START) return;                 // criada antes de set/2025 → fora
         const b=bucketOf(m.obj); if(!b) return;               // objetivo fora de tráfego/leads
-        adRows.push({ c:b, d:s.d, ad:s.ad, adset:s.adset, thumb:s.thumb, perma:s.perma,
+        adRows.push({ c:b, camp:s.camp, d:s.d, ad:s.ad, adset:s.adset, thumb:s.thumb, perma:s.perma,
           impr:s.impr, reach:s.reach, clk:s.clk, lpv:s.lpv, leads:s.leads, spend:s.spend,
           eng:0, vv:0, reac:0, save:0, shr:0 });
       });
@@ -1213,7 +1222,10 @@ class Component extends DCLogic {
     return {start:minD||'', end:maxD||''};
   }
   parseRowDate(s){ const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; const m2=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); return m2? m2[0]:null; }
-  setCampaign(key){ this.setState({campaign:key}); }
+  setCampaign(key){ this.setState({campaign:key, candCampaign:'all', sortAds:{key:'impr',dir:-1}, sortSets:{key:'impr',dir:-1}}); }
+  toggleSort(which, key){ const cur=this.state[which]||{key:'impr',dir:-1};
+    const dir = cur.key===key ? -cur.dir : (key==='name'? 1 : -1);
+    this.setState({ [which]: {key, dir} }); }
 
   /* ============ CSV ============ */
   parseCSV(txt){
@@ -1582,7 +1594,10 @@ class Component extends DCLogic {
     const S=this.state;
     // respeita os filtros de mês / intervalo de datas da página
     const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
-    const rows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d));
+    const bucketRows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d));
+    const campNames=[...new Set(bucketRows.map(r=>r.camp).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const campSel = (S.candCampaign!=='all' && campNames.indexOf(S.candCampaign)>=0) ? S.candCampaign : 'all';
+    const rows = campSel==='all' ? bucketRows : bucketRows.filter(r=>r.camp===campSel);
     const isLeads = key==='leads';
     const byAd={}, byAdset={};
     rows.forEach(r=>{
@@ -1591,8 +1606,21 @@ class Component extends DCLogic {
       if(!byAdset[r.adset]) byAdset[r.adset]={ name:r.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,spend:0, eng:0,vv:0,reac:0,save:0 };
       const s=byAdset[r.adset]; s.impressions+=r.impr; s.reach+=r.reach; s.linkClicks+=r.clk; s.lpViews+=r.lpv; s.leads+=r.leads; s.spend+=r.spend; s.eng+=(r.eng||0); s.vv+=(r.vv||0); s.reac+=(r.reac||0); s.save+=(r.save||0);
     });
-    const ads=Object.values(byAd).sort((a,b)=>b.impressions-a.impressions);
-    const adsetsArr=Object.values(byAdset).sort((a,b)=>b.impressions-a.impressions);
+    const mv=(a,k)=>{ switch(k){
+      case 'name': return (a.name||'').toLowerCase();
+      case 'impr': return a.impressions;
+      case 'ctr': return a.impressions? a.linkClicks/a.impressions : 0;
+      case 'c2': return a.linkClicks;
+      case 'c3': return isLeads? a.leads : a.lpViews;
+      case 'c4': return a.linkClicks? (isLeads? a.leads : a.lpViews)/a.linkClicks : 0;
+      case 'c5': return isLeads? (a.leads? a.spend/a.leads : Infinity) : (a.linkClicks? a.spend/a.linkClicks : Infinity);
+      default: return a.impressions; } };
+    const applySort=(arr,st)=>{ const k=(st&&st.key)||'impr', dir=(st&&st.dir)||-1;
+      return arr.slice().sort((x,y)=>{ const vx=mv(x,k), vy=mv(y,k);
+        if(typeof vx==='string') return dir*vx.localeCompare(vy);
+        return dir*((vx||0)-(vy||0)); }); };
+    const ads=applySort(Object.values(byAd), S.sortAds);
+    const adsetsArr=applySort(Object.values(byAdset), S.sortSets);
     const prod=this.CAMPAIGNS.find(c=>c.key===key);
     const investEyebrow = prod? prod.name : '';
     const hasReal = ads.length>0;
@@ -1667,7 +1695,18 @@ class Component extends DCLogic {
     const adsets=adsetsArr;
     const investAdsets=adsets.slice(0,30).map((a,i)=>Object.assign({ idx:i, name:a.name }, rowVals(a)));
     const adsStatus = S.adsError? ('Facebook Ads: '+S.adsError).slice(0,80) : (S.adsLoading? 'carregando campanhas do Facebook…' : (hasReal? '' : 'sem dados para esta campanha'));
-    return { investShow:true, segMode:false, showAdsets:true, showAds:true, investStages, investStats, investAds, investAdsets, investPubs:[], investEyebrow, adsStatus,
+    const campOptions=[{value:'all',label:'Todas as campanhas'}].concat(campNames.map(n=>({value:n,label:n})));
+    const campFilter={ value:campSel, options:campOptions, hasMany:campNames.length>1,
+      onChange:(e)=>this.setState({candCampaign:e.target.value}) };
+    const arrow=(st,k)=> (st&&st.key===k) ? (st.dir<0?' \u2193':' \u2191') : '';
+    const keys=['name','impr','ctr','c2','c3','c4','c5'];
+    const adLabels=['Anúncio','Impressões','CTR',colAds[0],colAds[1],colAds[2],colAds[3]];
+    const setLabels=['Conjunto','Impr.','CTR',colSets[0],colSets[1],colSets[2],colSets[3]];
+    const mkHead=(labels,st,which)=>labels.map((lb,i)=>({ label:lb, arrow:arrow(st,keys[i]), onClick:()=>this.toggleSort(which,keys[i]) }));
+    const adHead=mkHead(adLabels,S.sortAds,'sortAds');
+    const setHead=mkHead(setLabels,S.sortSets,'sortSets');
+    return { investShow:true, segMode:false, showAdsets:true, showAds:true, investStages, investStats, investAds, investAdsets, investPubs:[], investEyebrow, adsStatus, campFilter,
+      adHeadFirst:adHead[0], adHeadRest:adHead.slice(1), setHeadFirst:setHead[0], setHeadRest:setHead.slice(1),
       colA2:colAds[0], colA3:colAds[1], colA4:colAds[2], colA5:colAds[3],
       colS2:colSets[0], colS3:colSets[1], colS4:colSets[2], colS5:colSets[3] };
   }
