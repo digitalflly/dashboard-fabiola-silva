@@ -398,11 +398,11 @@
         <div style="border-top:1px solid var(--border-soft); margin:26px 0 18px; padding-top:24px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
           <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:16px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow:column; gap:12px; margin-bottom:16px;">
           <sc-for list="{{ investStats }}" as="st" hint-placeholder-count="5">
-            <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
+            <div class="b-card" style="padding:14px 16px; min-height:88px; min-width:0; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
               <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ st.label }}</div>
-              <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em;">{{ st.value }}</div>
+              <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em; white-space:nowrap;">{{ st.value }}</div>
             </div>
           </sc-for>
         </div>
@@ -624,7 +624,18 @@ class Component extends DCLogic {
       salesLoading: false,
       salesError: '',
       seg: {},
+      paidFollows: {},
+      formLeads: null,
     };
+    // Leads reais — duas planilhas: formulário nativo do Meta (campanhas sem [SITE]) e formulário do site ([SITE]).
+    this.LEADS_SHEET_NATIVO = '1rizwCB3XmfgP5ugDU0ypSGw5NL5v-AwiwEHyUJQZc34';
+    this.LEADS_SHEET_SITE   = '1pNI3O8PscXjFzIA5uB_gZdgi2zX8C4qZGY1R5eNCrH0';
+    this.LEADS_CKEY         = 'fabiFormLeads:v1';
+    // Seguidores pagos — pasta do Drive lida DINAMICAMENTE a cada atualização.
+    // Basta o cliente adicionar/remover .xlsx na pasta; nada precisa ser cadastrado aqui.
+    this.DRIVE_FOLDER   = '1XyVnKKjkwtrlf3-BXfIbWhp0hgYExBTn';
+    this.PAID_CKEY      = 'fabiPaidFollows:v1';
+    this.PAID_LIST_CKEY = 'fabiPaidFiles:v1';
     // Meta Ads (Windsor) — contas do negócio da Fabíola. As campanhas entram na página
     // separadas por OBJETIVO (tráfego × leads), NÃO pelo nome, somando as duas contas, e só
     // as criadas de set/2025 em diante (1ª veiculação ≥ ADS_START).
@@ -1002,7 +1013,7 @@ class Component extends DCLogic {
 
   /* ============ HANDLERS ============ */
   setPage(p){ this.setState({page:p}); }
-  onRefresh(){ if(this.TEMPLATE_MODE){ this.setState({refreshing:true, lastSync:this.nowStamp()}); setTimeout(()=>{ this.loadExampleData(); if(this.LIVE_INSTAGRAM){ this.fetchLive(); this.fetchDemographics(true); } if(this.LIVE_ADS){ this.fetchAds(); } }, 350); return; } this.fetchLive(); this.fetchAds(); this.fetchSales(); this.fetchSeguidores(); this.fetchDemographics(true); }
+  onRefresh(){ this.fetchPaidFollows(); this.fetchFormLeads(); if(this.TEMPLATE_MODE){ this.setState({refreshing:true, lastSync:this.nowStamp()}); setTimeout(()=>{ this.loadExampleData(); if(this.LIVE_INSTAGRAM){ this.fetchLive(); this.fetchDemographics(true); } if(this.LIVE_ADS){ this.fetchAds(); } }, 350); return; } this.fetchLive(); this.fetchAds(); this.fetchSales(); this.fetchSeguidores(); this.fetchPaidFollows(); this.fetchDemographics(true); }
   nowStamp(){ const now=new Date(); const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; return now.getDate()+' '+MN[now.getMonth()]+' '+now.getFullYear()+' · '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'); }
   nowYMD(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
   async fetchLive(){
@@ -1156,7 +1167,7 @@ class Component extends DCLogic {
       return true;
     }catch(e){ return false; }
   }
-  componentDidMount(){ try{ document.title = 'fabiola silva - gestão de tráfego'; }catch(e){} this.drawCharts(); this.seedFromCache(); if(this.TEMPLATE_MODE){ this.loadExampleData(); if(this.LIVE_INSTAGRAM){ this.fetchLive(); this.fetchDemographics(); } if(this.LIVE_ADS){ this.fetchAds(); } return; } try{ const c=JSON.parse(localStorage.getItem(this.SEG_CKEY)||'null'); if(c&&Object.keys(c).length) this.setState({seg:c}); }catch(e){} this.fetchLive(); this.fetchAds(); this.fetchDemographics(); this.fetchSales(); this.fetchSeguidores(); }
+  componentDidMount(){ try{ document.title = 'fabiola silva - gestão de tráfego'; }catch(e){} this.drawCharts(); this.seedFromCache(); try{ const p=JSON.parse(localStorage.getItem(this.PAID_CKEY)||'null'); if(p&&Object.keys(p).length) this.setState({paidFollows:p}); }catch(e){} try{ const fl=JSON.parse(localStorage.getItem(this.LEADS_CKEY)||'null'); if(fl) this.setState({formLeads:fl}); }catch(e){} this.fetchPaidFollows(); this.fetchFormLeads(); if(this.TEMPLATE_MODE){ this.loadExampleData(); if(this.LIVE_INSTAGRAM){ this.fetchLive(); this.fetchDemographics(); } if(this.LIVE_ADS){ this.fetchAds(); } return; } try{ const c=JSON.parse(localStorage.getItem(this.SEG_CKEY)||'null'); if(c&&Object.keys(c).length) this.setState({seg:c}); }catch(e){} this.fetchLive(); this.fetchAds(); this.fetchDemographics(); this.fetchSales(); this.fetchSeguidores(); this.fetchPaidFollows(); }
 
   // Facebook Ads (Windsor) — campanhas por produto (WA/Reset/Ciclo/Essência).
   // Semeia desde mai/2025 (cache) e depois só re-busca os 3 dias anteriores à atualização.
@@ -1247,7 +1258,10 @@ class Component extends DCLogic {
         interaction:{ mode:'index', intersect:false },
         plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, boxHeight:10, usePointStyle:true, font:{ family:'Neue Montreal', size:11 }, color:'#6B746A' } },
           tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
-            callbacks: opts.pct? { label:(c)=> c.dataset.label+': '+this.fmtPct(c.parsed.y) } : { label:(c)=> c.dataset.label+': '+this.fmtNum(c.parsed.y) } } },
+            callbacks: Object.assign(
+              opts.pct? { label:(c)=> c.dataset.label+': '+this.fmtPct(c.parsed.y) } : { label:(c)=> c.dataset.label+': '+this.fmtNum(c.parsed.y) },
+              opts.footer? { footer:(items)=> items.length? opts.footer(items[0].dataIndex) : '' } : {}
+            ) } },
         scales:{
           x:{ grid:{ display:false }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
           y:{ beginAtZero: !!opts.zero, grid:{ color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', callback: opts.pct? (v)=>this.fmtPct(v) : (v)=> this.fmtNum(v) } }
@@ -1389,8 +1403,17 @@ class Component extends DCLogic {
     const metricFns={ views:r=>r.views, reach:r=>r.reach, interactionRate:r=>r.reach?r.interactions/r.reach*100:null, saveRate:r=>r.reach?r.saves/r.reach*100:null, shareRate:r=>r.reach?r.shares/r.reach*100:null };
     const metric2Pct = (S.metric2!=='views' && S.metric2!=='reach');
     const wdLabels=['seg','ter','qua','qui','sex','sáb','dom'];
+    const pf=S.paidFollows||{};
+    const fNet={}; (M.follows||[]).forEach(f=>{ if(f.net!=null) fNet[f.date]=f.net; });
+    const flFooter=(i)=>{ const t=flWin[i]; if(!t) return '';
+      const total=(t.date in fNet)? fNet[t.date] : null;
+      const paid=pf[t.date]? pf[t.date].t : (t.date>='2026-07-01' ? 0 : null);
+      const L=[];
+      if(paid!=null) L.push('pagos: +'+this.fmtNum(paid));
+      return L;
+    };
     this._chartCfgs={
-      'chart-followers': this.lineCfg(flWin.map(t=>this.ddmm(t.date)), [{label:'seguidores', data:flWin.map(t=>t.value), color:accent, fill:true, fillColor:'rgba(23,34,25,0.08)'}], {zero:false}),
+      'chart-followers': this.lineCfg(flWin.map(t=>this.ddmm(t.date)), [{label:'seguidores', data:flWin.map(t=>t.value), color:accent, fill:true, fillColor:'rgba(23,34,25,0.08)'}], {zero:false, footer:flFooter}),
       'chart-metric2': this.lineCfg(wdLabels, this.weekdayDatasets(win, metricFns[S.metric2]), {pct:metric2Pct, zero:metric2Pct}),
       'chart-engfollowers': this.lineCfg(wdLabels, this.weekdayDatasets(win, r=> followers? r.interactions/followers*100 : null), {pct:true, zero:true}),
       'chart-enggeneral': this.lineCfg(wdLabels, this.weekdayDatasets(win, r=> r.reach? r.interactions/r.reach*100 : null), {pct:true, zero:true}),
@@ -1640,16 +1663,38 @@ class Component extends DCLogic {
     let raw, investStats, colAds, colSets;
     if(isLeads){
       const custoLead = leadsGer? investido/leadsGer : 0;
+      // leads reais das planilhas: nativo (campanhas sem [SITE]) + site ([SITE])
+      const FL=S.formLeads||{nativo:[],site:[]};
+      const isSite=(n)=>/\[\s*site\s*\]/i.test(String(n||''));
+      // planilha do site não tem campanha: cruzamos pela DATA em que a campanha [SITE] veiculou
+      const diasDe=(pred)=>{ const set=new Set(); bucketRows.forEach(r=>{ if(pred(r.camp)) set.add(r.d); }); return set; };
+      const SITE_INI='2026-07-01'; // leads do site só valem a partir de 01/07
+      let leadsPl;
+      if(campSel!=='all'){
+        if(isSite(campSel)){ const dias=diasDe(n=>n===campSel);
+          leadsPl=(FL.site||[]).filter(x=>x.d>=SITE_INI && inRange(x.d) && dias.has(x.d)).length; }
+        else leadsPl=(FL.nativo||[]).filter(x=>inRange(x.d) && x.camp===campSel).length;
+      } else {
+        const nomes=new Set(campNames);
+        const temSite=campNames.some(isSite), temNativo=campNames.some(n=>!isSite(n));
+        const diasSite=temSite? diasDe(isSite) : new Set();
+        leadsPl = (temNativo? (FL.nativo||[]).filter(x=>inRange(x.d) && (!x.camp || nomes.has(x.camp))).length : 0)
+                + (temSite? (FL.site||[]).filter(x=>x.d>=SITE_INI && inRange(x.d) && diasSite.has(x.d)).length : 0);
+      }
+      const custoPl = leadsPl? investido/leadsPl : 0;
       raw=[
         { label:'Alcance', value:alcance, conv:null, cost:null },
         { label:'Impressões', value:impressoes, freq:div(impressoes,alcance), cost:null },
         { label:'Cliques no link', value:cliques, conv:div(cliques,impressoes), cost:money2(cpc) },
         { label:'Leads', value:leadsGer, conv:div(leadsGer,cliques), cost:money2(custoLead) },
+        { label:'Leads planilha', value:leadsPl, conv:div(leadsPl,leadsGer), cost:money2(custoPl) },
       ];
       investStats=[
         { label:'Investimento', value:'R$ '+this.fmtNum(investido) },
         { label:'CPM', value:money2(cpm) },
         { label:'Custo por clique', value:money2(cpc) },
+        { label:'Leads', value:this.fmtNum(leadsGer) },
+        { label:'Leads planilha', value:this.fmtNum(leadsPl) },
         { label:'Custo por lead', value:money2(custoLead) },
         { label:'CTR', value:this.fmtPct(ctr) },
       ];
@@ -1672,7 +1717,7 @@ class Component extends DCLogic {
       colAds=['Cliques no link','Visu. da página','Connect rate','Custo/clique'];
       colSets=['Cliques','Visu. pág.','Connect','Custo/clq'];
     }
-    const widths=[100,86,68,52];
+    const widths=[100,86,68,52,40];
     const investStages=raw.map((s,i)=>{
       const convStr = s.freq!=null ? (s.freq).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : (s.conv==null? '' : this.fmtPct(s.conv*100));
       const left = convStr ? (s.cost ? convStr+'  -  '+s.cost : convStr) : '';
@@ -1737,6 +1782,83 @@ class Component extends DCLogic {
       try{ localStorage.setItem(this.SALES_CKEY, JSON.stringify(cache)); }catch(e){}
       this.setState({salesLoading:false, sales});
     }catch(e){ this.setState({salesLoading:false, salesError:(e&&e.message)||'falha ao ler vendas'}); }
+  }
+
+  async fetchFormLeads(){
+    if(this._flLoading) return; this._flLoading=true;
+    const gv=async(id)=>{ const r=await fetch('https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&_cb='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return this.parseCSV(await r.text()); };
+    const ymd=(s)=>{ s=String(s||'').trim(); let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+'-'+m[2]+'-'+m[3];
+      m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; return ''; };
+    try{
+      const out={ nativo:[], site:[] };
+      await Promise.all([
+        (async()=>{ try{ const rows=await gv(this.LEADS_SHEET_NATIVO);
+          const head=rows[0].map(h=>String(h||'').replace(/^\ufeff/,'').trim().toLowerCase());
+          const iD=head.indexOf('created_time'), iC=head.indexOf('campaign_name');
+          rows.slice(1).forEach(r=>{ if(!r) return; const d=ymd(r[iD<0?1:iD]); if(!d) return;
+            out.nativo.push({ d, camp:String((iC<0?'':r[iC])||'').trim() }); });
+        }catch(e){} })(),
+        (async()=>{ try{ const rows=await gv(this.LEADS_SHEET_SITE);
+          const head=rows[0].map(h=>String(h||'').replace(/^\ufeff/,'').trim().toLowerCase());
+          const iD=Math.max(0, head.findIndex(h=>/^(data|date)$/.test(h)));
+          rows.slice(1).forEach(r=>{ if(!r) return; const d=ymd(r[iD]); if(!d) return; out.site.push({ d }); });
+        }catch(e){} })(),
+      ]);
+      if(out.nativo.length || out.site.length){
+        try{ localStorage.setItem(this.LEADS_CKEY, JSON.stringify(out)); }catch(e){}
+        this.setState({formLeads:out});
+      }
+    }finally{ this._flLoading=false; }
+  }
+
+  /* ============ SEGUIDORES PAGOS (pasta do Drive — lista dinâmica) ============ */
+  // Lê QUAIS arquivos existem na pasta a cada atualização (o cliente troca os .xlsx à vontade),
+  // depois puxa cada um via gviz. Ordem de tentativa: função /api (Vercel) → leitor público → cache.
+  async listDriveFolder(){
+    const F=this.DRIVE_FOLDER, tgt='https://drive.google.com/embeddedfolderview?id='+F+'#list';
+    const grab=(t)=>{ const ids=new Set(); const re=/(?:data-id="|id="entry-|\/file\/d\/)([A-Za-z0-9_-]{25,})/g; let m; while((m=re.exec(t))) ids.add(m[1]); return [...ids]; };
+    try{ const r=await fetch('/api/drive-folder?id='+F+'&_cb='+Date.now(),{cache:'no-store'});
+      if(r.ok){ const j=await r.json(); if(j&&j.files&&j.files.length) return j.files.map(f=>f.id); } }catch(e){}
+    try{ const r=await fetch('https://r.jina.ai/'+tgt,{cache:'no-store'});
+      if(r.ok){ const ids=grab(await r.text()); if(ids.length) return ids; } }catch(e){}
+    try{ const c=JSON.parse(localStorage.getItem(this.PAID_LIST_CKEY)||'null'); if(c&&c.ids&&c.ids.length) return c.ids; }catch(e){}
+    return [];
+  }
+  async fetchPaidFollows(){
+    if(this._paidLoading) return; this._paidLoading=true;
+    try{
+      const ids=await this.listDriveFolder();
+      if(ids.length){ try{ localStorage.setItem(this.PAID_LIST_CKEY, JSON.stringify({ids, at:Date.now()})); }catch(e){} }
+      const acc={};
+      await Promise.all(ids.map(async(id)=>{
+        try{
+          const r=await fetch('https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&_cb='+Date.now(),{cache:'no-store'});
+          if(!r.ok) return;
+          const rows=this.parseCSV(await r.text()); if(rows.length<2) return;
+          const head=rows[0].map(h=>String(h||'').replace(/^\ufeff/,'').trim().toLowerCase());
+          let iDay =head.findIndex(h=>/^(dia|day|data)$/.test(h));
+          if(iDay<0) iDay=head.findIndex(h=>/\b(dia|day|data)\b/.test(h));
+          const iFol =head.findIndex(h=>/seguidor|follow/.test(h));
+          const iCamp=head.findIndex(h=>/campanha|campaign/.test(h));
+          if(iDay<0 || iFol<0) return;
+          rows.slice(1).forEach(c=>{
+            if(!c||c.length<=iFol) return;
+            let d=String(c[iDay]||'').trim().slice(0,10);
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) d=this.parseRowDate(c[iDay])||'';
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+            const n=parseInt(String(c[iFol]||'0').replace(/[^0-9-]/g,''),10)||0;
+            if(!acc[d]) acc[d]={t:0, by:{}};
+            acc[d].t+=n;
+            const nm=iCamp>=0? String(c[iCamp]||'').trim() : '';
+            if(nm && n) acc[d].by[nm]=(acc[d].by[nm]||0)+n;
+          });
+        }catch(e){}
+      }));
+      if(Object.keys(acc).length){
+        try{ localStorage.setItem(this.PAID_CKEY, JSON.stringify(acc)); }catch(e){}
+        this.setState({paidFollows:acc});
+      }
+    }finally{ this._paidLoading=false; }
   }
 
   /* ============ NOVOS SEGUIDORES (turbinamento — .xlsx do Drive, ao vivo via gviz) ============ */
